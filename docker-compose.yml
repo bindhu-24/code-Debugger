@@ -3,9 +3,9 @@ services:
     image: pgvector/pgvector:pg16
     container_name: code-review-db
     environment:
-      POSTGRES_USER: books_user
-      POSTGRES_PASSWORD: StrongPassword2026
-      POSTGRES_DB: books_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: code_review_db
     ports:
       - "5432:5432"
 
@@ -17,4 +17,5 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://books_user:StrongPassword2026@db:5432/books_db
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/code_review_db
+
