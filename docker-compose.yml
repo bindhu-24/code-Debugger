@@ -2,20 +2,48 @@ services:
   db:
     image: pgvector/pgvector:pg16
     container_name: code-review-db
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: code_review_db
+
     ports:
       - "5432:5432"
 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   api:
-    build: .
+    build: 
+     context: .
+     dockerfile: Dockerfile
     container_name: code-review-api
+
     ports:
       - "8000:8000"
+
     depends_on:
       - db
+
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/code_review_db
 
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+
+    container_name: code-review-ui
+
+    depends_on:
+      - api
+
+    ports:
+      - "8501:8501"
+
+    environment:
+      API_URL: http://api:8000
+
+volumes:
+  postgres_data:

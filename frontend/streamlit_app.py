@@ -1,5 +1,8 @@
 import streamlit as st
 import requests
+import os
+
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 st.set_page_config(
     page_title="AI Code Review Agent",
@@ -43,7 +46,7 @@ if st.button("Review Code"):
         with st.spinner("Reviewing code..."):
             try:
                 response = requests.post(
-                    "http://127.0.0.1:8000/review",
+                    f"{API_URL}/review",
                     json=payload,
                     timeout=30
                 )

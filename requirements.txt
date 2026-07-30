@@ -10,3 +10,5 @@ langchain-openai
 langgraph
 pgvector
 alembic
+streamlit 
+requests

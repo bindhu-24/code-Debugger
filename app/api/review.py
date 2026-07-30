@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.schemas.review_schema import ReviewRequest
@@ -13,6 +13,12 @@ def review_code(
     request: ReviewRequest,
     db: Session = Depends(get_db)
 ):
+    if len(request.code) > 10000:
+        raise HTTPException(
+            status_code=400,
+            detail="code too large. Maximum allowed length is 10,000 characters."
+        )
+    
     review = create_review(
         db=db,
         language=request.language,

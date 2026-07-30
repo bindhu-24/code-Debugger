@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 
 
 class ReviewRequest(BaseModel):
     language: str
-    code: str
+    code: str = Field(..., max_length=10000)
     context: Optional[str] = None
 
 
@@ -14,6 +14,7 @@ class ReviewRequest(BaseModel):
 #     line_number: int
 #     description: str
 #     recommendation: str
+
 class ReviewIssue(BaseModel):
     severity: Literal[
         "Low",

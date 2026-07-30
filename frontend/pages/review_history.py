@@ -1,10 +1,13 @@
 import streamlit as st
 import requests
+import os
+
+API_URL = os.getenv("API_URL", "http://api:8000")
 
 st.title("📜 Review History")
 try:
     response = requests.get(
-        "http://127.0.0.1:8000/reviews",
+        f"{API_URL}/reviews",
         timeout=10
     )
 
@@ -38,6 +41,8 @@ try:
             f"API Error: {response.status_code}\n{response.text}"
         )
 
+# except Exception as e:
+#     st.error(f"Error: {e}")
 except requests.exceptions.ConnectionError:
     st.error(
         "Cannot connect to FastAPI backend.\n\n"
