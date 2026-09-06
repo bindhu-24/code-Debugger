@@ -1,443 +1,758 @@
 # 🤖 AI Code Review Agent
 
-<<<<<<< HEAD
-An AI-powered code review system that analyzes source code for bugs, security vulnerabilities, code smells, readability issues, and best practice violations using Large Language Models and LangGraph orchestration.
+An **AI-powered automated code review system** that analyzes source code, detects bugs, security vulnerabilities, code-quality issues, and best-practice violations, and generates a structured code review report using **LLM + RAG + LangGraph**.
 
-## Features
-
-* Multi-language code review support
-
-  * Python
-  * JavaScript
-  * Java
-  * C++
-  * Go
-* Security vulnerability detection
-* Bug risk identification
-* Code smell detection
-* Readability analysis
-* Best practice recommendations
-* RAG-powered coding standards retrieval
-* LangGraph workflow orchestration
-* Review history tracking
-* Code health score visualization
-* Streamlit frontend UI
-* FastAPI backend API
+The system combines **OpenAI GPT-4o-mini**, **LangGraph**, **RAG**, **pgvector**, **PostgreSQL**, and **FastAPI** to provide context-aware and automated code reviews.
 
 ---
 
-## Technology Stack
+## 🚀 Project Overview
 
-### Backend
+Traditional code reviews require developers to manually inspect code for:
 
-* FastAPI
-* SQLAlchemy
-* PostgreSQL
-* LangGraph
-* LangChain
-* OpenAI GPT Models
+* Bugs and potential runtime issues
+* Security vulnerabilities
+* Poor coding practices
+* Readability problems
+* Performance concerns
+* Violations of coding standards
 
-### Frontend
+This project automates that process using an **LLM-based code review agent**.
 
-* Streamlit
+The system accepts source code from the user and:
 
-### Database
-
-* PostgreSQL
-* pgvector
+1. Analyzes the submitted code
+2. Generates an embedding for semantic search
+3. Retrieves relevant coding standards using **RAG**
+4. Uses **GPT-4o-mini** to review the code against those standards
+5. Generates a structured review
+6. Assigns a quality score
+7. Identifies issues with severity and category
+8. Provides recommendations for fixing the issues
+9. Stores the review results in PostgreSQL
 
 ---
 
-## Project Structure
+## ✨ Key Features
+
+* 🤖 **AI-powered code review**
+* 🔍 **Bug detection**
+* 🔐 **Security vulnerability detection**
+* 📚 **RAG-based coding standards retrieval**
+* 🧠 **Semantic search using embeddings**
+* 🗄️ **PostgreSQL + pgvector**
+* 🔄 **LangGraph multi-step workflow**
+* ⚡ **FastAPI REST API**
+* 📊 **Structured review reports**
+* 📝 **Issue severity classification**
+* 🎯 **Code quality scoring**
+* 💾 **Persistent review history**
+* 🖥️ **Streamlit frontend**
+* 🐳 **Docker support**
+
+---
+
+# 🏗️ System Architecture
 
 ```text
-code-Debugger/
+                    ┌─────────────────────┐
+                    │    Streamlit UI     │
+                    │                     │
+                    │ Code + Language +   │
+                    │ Context             │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │     FastAPI         │
+                    │      /review        │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Review Service    │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+             ┌──────────────────────────────────┐
+             │          LangGraph Workflow      │
+             │                                  │
+             │  ┌───────────────┐               │
+             │  │ Analyze Code  │               │
+             │  └───────┬───────┘               │
+             │          ▼                        │
+             │  ┌───────────────┐               │
+             │  │ Retrieve RAG  │               │
+             │  └───────┬───────┘               │
+             │          ▼                        │
+             │  ┌───────────────┐               │
+             │  │ Generate      │               │
+             │  │ Review        │               │
+             │  └───────┬───────┘               │
+             │          ▼                        │
+             │  ┌───────────────┐               │
+             │  │ Finalize      │               │
+             │  └───────┬───────┘               │
+             │          ▼                        │
+             │  ┌───────────────┐               │
+             │  │ Save Report   │               │
+             │  └───────────────┘               │
+             └──────────────────────────────────┘
+                         │
+                         ▼
+              ┌────────────────────────┐
+              │ PostgreSQL + pgvector  │
+              │                        │
+              │ • Code submissions     │
+              │ • Review reports       │
+              │ • Coding standards     │
+              │ • Embeddings           │
+              └────────────────────────┘
+```
+
+---
+
+# 🔄 RAG Pipeline
+
+The project uses **Retrieval-Augmented Generation (RAG)** to provide coding standards to the LLM before generating the review.
+
+```text
+Submitted Code
+      │
+      ▼
+Generate Embedding
+      │
+      ▼
+text-embedding-3-small
+      │
+      ▼
+1536-dimensional Vector
+      │
+      ▼
+PostgreSQL + pgvector
+      │
+      ▼
+Cosine Similarity Search
+      │
+      ▼
+Top-K Relevant Standards
+      │
+      ▼
+Coding Standards + Source Code
+      │
+      ▼
+GPT-4o-mini
+      │
+      ▼
+Structured Code Review
+```
+
+### Top-K Retrieval
+
+The system currently retrieves the **Top 5 most relevant coding standards**.
+
+For example:
+
+```python
+def add_item(item, items=[]):
+    items.append(item)
+    return items
+```
+
+The RAG system can retrieve standards such as:
+
+```text
+Avoid Mutable Default Arguments
+Document Public Functions
+Use PEP 8 Formatting
+Use snake_case Naming
+```
+
+These standards are then supplied to the LLM as context.
+
+---
+
+# 🧠 LangGraph Workflow
+
+LangGraph is used to orchestrate the code-review workflow.
+
+```text
+START
+  │
+  ▼
+Analyze Code
+  │
+  ▼
+Retrieve Coding Standards
+  │
+  ▼
+Generate AI Review
+  │
+  ▼
+Finalize Review
+  │
+  ▼
+Save Review
+  │
+  ▼
+END
+```
+
+### Workflow Nodes
+
+#### 1. Analyze
+
+Receives the submitted source code and prepares it for review.
+
+#### 2. Retrieve
+
+Uses the code as a semantic search query and retrieves relevant coding standards from PostgreSQL + pgvector.
+
+#### 3. Generate Review
+
+Sends the following context to GPT-4o-mini:
+
+```text
+Source Code
++
+Programming Language
++
+Relevant Coding Standards
++
+Optional Context
+```
+
+The LLM identifies issues and generates:
+
+* Score
+* Summary
+* Severity
+* Category
+* Line number
+* Description
+* Recommendation
+
+#### 4. Finalize
+
+Formats the generated review into the final review result.
+
+#### 5. Save
+
+Persists the structured review report into PostgreSQL.
+
+---
+
+# 🛠️ Technology Stack
+
+| Category             | Technology                     |
+| -------------------- | ------------------------------ |
+| Programming Language | Python 3.x                     |
+| Backend              | FastAPI                        |
+| AI / LLM             | OpenAI GPT-4o-mini             |
+| Embeddings           | OpenAI text-embedding-3-small  |
+| Agent Orchestration  | LangGraph                      |
+| LLM Framework        | LangChain                      |
+| RAG                  | Retrieval-Augmented Generation |
+| Vector Database      | pgvector                       |
+| Database             | PostgreSQL                     |
+| ORM                  | SQLAlchemy                     |
+| Validation           | Pydantic                       |
+| Frontend             | Streamlit                      |
+| Containerization     | Docker                         |
+| API Documentation    | Swagger / OpenAPI              |
+
+---
+
+# 📁 Project Structure
+
+```text
+ai-code-review-agent/
 │
 ├── app/
-│   ├── api/
+│   │
 │   ├── database/
+│   │   ├── connection.py
+│   │   ├── models.py
+│   │   └── init_db.py
+│   │
 │   ├── graph/
-│   ├── llm/
+│   │   ├── nodes.py
+│   │   ├── state.py
+│   │   └── workflow.py
+│   │
+│   ├── rag/
+│   │   ├── embeddings.py
+│   │   ├── retriever.py
+│   │   └── seed_standards.py
+│   │
 │   ├── schemas/
+│   │   └── review_schema.py
+│   │
 │   ├── services/
+│   │   └── review_service.py
+│   │
 │   └── main.py
 │
-├── frontend/
-│   ├── streamlit_app.py
-│   └── pages/
-│       └── review_history.py
+├── streamlit/
+│   └── app.py
 │
+├── tests/
+│   └── test_graph.py
+│
+├── .env
+├── docker-compose.yml
+├── Dockerfile
 ├── requirements.txt
-├── README.md
-└── .env
-=======
-An AI-powered Code Review Agent built with **FastAPI, LangGraph, OpenAI GPT, PostgreSQL, pgvector, Docker, and Streamlit**.
-
-The application analyzes source code, detects security vulnerabilities, bug risks, performance issues, readability problems, and best-practice violations, then generates a structured review report with an overall quality score.
-
----
-
-# Features
-
-- AI-powered code review
-- Multi-language support
-  - Python
-  - JavaScript
-  - Java
-  - C++
-  - Go
-- Quality score (0–100)
-- Security vulnerability detection
-- Bug risk analysis
-- Performance suggestions
-- Readability improvements
-- Best practice recommendations
-- Review history
-- Dockerized deployment
-- PostgreSQL storage
-- REST API with FastAPI
-- Interactive Streamlit UI
-
----
-
-# Tech Stack
-
-## Backend
-
-- FastAPI
-- LangGraph
-- OpenAI GPT
-- SQLAlchemy
-- PostgreSQL
-- pgvector
-- Pydantic
-
-## Frontend
-
-- Streamlit
-
-## DevOps
-
-- Docker
-- Docker Compose
-
----
-
-# Project Structure
-
-```
-app/
-│
-├── database/
-│   ├── connection.py
-│   ├── dependencies.py
-│   └── models.py
-│
-├── graph/
-│   ├── graph_builder.py
-│   └── nodes.py
-│
-├── routes/
-│   ├── review.py
-│   └── history.py
-│
-├── schemas/
-│   └── review_schema.py
-│
-├── services/
-│   ├── llm_service.py
-│   ├── review_service.py
-│   └── review_history_service.py
-│
-├── prompts/
-│   └── review_prompt.py
-│
-├── main.py
-│
-frontend/
-│
-├── streamlit_app.py
-└── pages/
-    └── review_history.py
->>>>>>> a9d6b23 (Fixed the review page error)
+└── README.md
 ```
 
 ---
 
-<<<<<<< HEAD
-## LangGraph Workflow
+# 🗄️ Database Design
 
-1. Accept source code from user.
-2. Store submission in database.
-3. Retrieve relevant coding standards using RAG.
-4. Analyze code using LLM.
-5. Generate structured review report.
-6. Save review results.
-7. Return response to UI.
+The application uses PostgreSQL with pgvector.
+
+### Code Submissions
+
+Stores the code submitted by the user.
+
+```text
+code_submissions
+├── id
+├── language
+├── code
+└── context
+```
+
+### Review Reports
+
+Stores the generated AI review.
+
+```text
+review_reports
+├── id
+├── submission_id
+├── score
+├── summary
+└── issues
+```
+
+### Coding Standards
+
+Stores coding standards and their embeddings.
+
+```text
+coding_standards
+├── id
+├── title
+├── language
+├── category
+├── content
+└── embedding
+```
 
 ---
 
-## API Endpoints
+# 📡 API
 
-### Review Code
+## POST `/review`
 
-```http
-POST /review
-```
+Reviews submitted source code.
 
-Example Request:
+### Request
 
 ```json
 {
   "language": "python",
-  "code": "print('Hello World')",
-  "context": "Example API"
-=======
-# Architecture
-
+  "code": "query = 'SELECT * FROM users WHERE id=' + user_id",
+  "context": "Login API"
+}
 ```
-          User
 
-            │
+### Response
 
-            ▼
-
-      Streamlit UI
-
-            │
-
-            ▼
-
-        FastAPI API
-
-            │
-
-            ▼
-
-      LangGraph Agent
-
-            │
-
-            ▼
-
-      OpenAI GPT Model
-
-            │
-
-            ▼
-
-Structured Review Report
-
-            │
-
-            ▼
-
-      PostgreSQL Database
+```json
+{
+  "review_id": 13,
+  "status": "completed",
+  "review": {
+    "score": 60,
+    "summary": "The code contains a potential security vulnerability.",
+    "issues": [
+      {
+        "severity": "High",
+        "category": "Security",
+        "line_number": 1,
+        "description": "Potential SQL injection vulnerability.",
+        "recommendation": "Use parameterized SQL queries."
+      }
+    ]
+  }
+}
 ```
 
 ---
 
-# Installation
+# 📊 Review Output
 
-Clone the repository
+Each issue contains:
+
+| Field            | Description                                                                  |
+| ---------------- | ---------------------------------------------------------------------------- |
+| `severity`       | Low / Medium / High / Critical                                               |
+| `category`       | Bug Risk / Security / Performance / Readability / Best Practice / Code Smell |
+| `line_number`    | Line where the issue occurs                                                  |
+| `description`    | Explanation of the problem                                                   |
+| `recommendation` | Suggested solution                                                           |
+
+The overall review also contains:
+
+```text
+Score
+Summary
+Issues
+```
+
+---
+
+# 🔐 Example: Security Review
+
+### Input
+
+```python
+query = "SELECT * FROM users WHERE id=" + user_id
+```
+
+### AI Review
+
+```text
+Score: 35
+
+Issue:
+Severity: High
+Category: Security
+
+Description:
+Potential SQL injection vulnerability caused by
+directly concatenating user input into the SQL query.
+
+Recommendation:
+Use parameterized queries instead of string concatenation.
+```
+
+---
+
+# 🐍 Example: Bug Detection
+
+### Input
+
+```python
+def add_item(item, items=[]):
+    items.append(item)
+    return items
+```
+
+### AI Review
+
+```text
+Score: 60
+
+Issue:
+Severity: High
+Category: Bug Risk
+
+Description:
+The function uses a mutable list as a default argument.
+The same list can be shared across multiple function calls.
+
+Recommendation:
+Use None as the default value and initialize the list
+inside the function.
+```
+
+---
+
+# ⚙️ Installation
+
+## 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/code-debugger.git
-
-cd code-debugger
+git clone <your-repository-url>
+cd ai-code-review-agent
 ```
 
----
+## 2. Create environment variables
 
-Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-Create a `.env`
+Create a `.env` file:
 
 ```env
-OPENAI_API_KEY=your_api_key
+OPENAI_API_KEY=your_openai_api_key
 
 DATABASE_URL=postgresql://postgres:postgres@db:5432/code_review_db
 ```
 
+> Never commit your `.env` file or API keys to GitHub.
+
+GitHub recommends using security features such as secret scanning and push protection to help prevent credentials from being committed to repositories.
+
 ---
 
-# Run using Docker
+# 🐳 Run with Docker
+
+Build and start the application:
 
 ```bash
 docker compose up --build
 ```
 
----
+The API will be available at:
 
-Frontend
-
-```
-http://localhost:8501
+```text
+http://localhost:8000
 ```
 
-Backend
+Swagger API documentation:
 
-```
+```text
 http://localhost:8000/docs
 ```
 
 ---
 
-# API Endpoints
+# 🧪 Testing
 
-## Review Code
+The project includes graph-level testing.
 
-```
-POST /review
-```
-
-Example Request
-
-```json
-{
-  "language":"python",
-  "code":"print('Hello World')",
-  "context":"Example"
->>>>>>> a9d6b23 (Fixed the review page error)
-}
-```
-
----
-
-<<<<<<< HEAD
-### Review History
-
-```http
-GET /reviews
-```
-
-Returns all previously generated code reviews.
-
----
-
-## Running the Backend
+Run:
 
 ```bash
-uvicorn app.main:app --reload
+python test_graph.py
 ```
 
-Backend URL:
+Example test cases include:
+
+### Mutable Default Argument
+
+```python
+def add_item(item, items=[]):
+    items.append(item)
+    return items
+```
+
+### SQL Injection
+
+```python
+query = "SELECT * FROM users WHERE id=" + user_id
+```
+
+### Hardcoded Password
+
+```python
+password = "admin123"
+```
+
+### Division by Zero
+
+```python
+def divide(a, b):
+    return a / b
+```
+
+### Clean Code
+
+```python
+def add(a: int, b: int) -> int:
+    """Return the sum of two integers."""
+    return a + b
+```
+
+---
+
+# 🔬 How the AI Components Work
+
+## LLM
+
+**GPT-4o-mini** is responsible for reasoning over the source code and retrieved coding standards.
+
+It identifies:
+
+* Bugs
+* Security vulnerabilities
+* Code smells
+* Readability issues
+* Best-practice violations
+
+It then generates the structured review.
+
+---
+
+## Embeddings
+
+The project uses:
 
 ```text
-http://127.0.0.1:8000
+text-embedding-3-small
 ```
 
-Swagger Documentation:
+The embedding model converts the submitted code/query into a numerical vector.
+
+This allows the system to perform **semantic similarity search** rather than simple keyword matching.
+
+---
+
+## pgvector
+
+The generated embeddings are stored in PostgreSQL using the **pgvector** extension.
+
+The system uses cosine distance to find the most relevant coding standards.
 
 ```text
-http://127.0.0.1:8000/docs
-=======
-## Review History
-
-```
-GET /reviews
-```
-
-Returns previously generated code review reports.
-
----
-
-# Example Output
-
-```json
-{
-  "review_id": 1,
-  "status":"completed",
-  "review":{
-      "score":85,
-      "summary":"The code is functional but has readability issues.",
-      "issues":[
-          {
-              "severity":"Medium",
-              "category":"Readability",
-              "description":"Variable names are unclear.",
-              "recommendation":"Use descriptive variable names."
-          }
-      ]
-  }
-}
->>>>>>> a9d6b23 (Fixed the review page error)
+Code
+ ↓
+Embedding
+ ↓
+Vector
+ ↓
+pgvector
+ ↓
+Cosine Similarity
+ ↓
+Top-K Standards
 ```
 
 ---
 
-<<<<<<< HEAD
-## Running the Frontend
+# 🎯 Why RAG?
 
-Activate virtual environment:
+Instead of asking the LLM to review code using only its general knowledge, the system provides relevant coding standards retrieved from the knowledge base.
 
-```bash
-venv\Scripts\activate
+This improves:
+
+* Context awareness
+* Consistency
+* Domain-specific reviews
+* Control over coding standards
+* Explainability
+
+The knowledge base can also be updated without retraining the LLM.
+
+---
+
+# 🔄 Complete Request Flow
+
+```text
+User
+ │
+ │ Submit Code
+ ▼
+Streamlit
+ │
+ ▼
+FastAPI
+ │
+ ▼
+Review Service
+ │
+ ▼
+Create Code Submission
+ │
+ ▼
+LangGraph
+ │
+ ├── Analyze Code
+ │
+ ├── Generate Embedding
+ │
+ ├── Search pgvector
+ │
+ ├── Retrieve Top-K Standards
+ │
+ ├── Send Code + Standards to GPT
+ │
+ ├── Generate Structured Review
+ │
+ ├── Validate with Pydantic
+ │
+ └── Save Review
+ │
+ ▼
+PostgreSQL
+ │
+ ▼
+API Response
+ │
+ ▼
+Streamlit UI
 ```
 
-Start Streamlit:
+---
 
-```bash
-streamlit run frontend/streamlit_app.py
-```
+# 📈 Future Enhancements
+
+Possible future improvements include:
+
+* GitHub Pull Request integration
+* Automatic PR comments
+* Multi-language support
+* Additional coding standards
+* Larger RAG knowledge base
+* Review history dashboard
+* Code diff analysis
+* Authentication and authorization
+* CI/CD integration
+* Automated test generation
+* Performance analysis
+* LLM evaluation metrics
+* Human feedback loop
+* Multiple LLM provider support
 
 ---
 
-## Example Issues Detected
+# 🔒 Security Considerations
 
-* SQL Injection
-* Hardcoded Secrets
-* Command Injection
-* Infinite Loops
-* Division by Zero
-* Magic Numbers
-* Missing Type Hints
-* Duplicate Code
-* Performance Bottlenecks
+* Store API keys in environment variables.
+* Never commit `.env` files.
+* Validate incoming API requests.
+* Limit maximum code input size.
+* Sanitize and validate database inputs.
+* Use parameterized SQL queries.
+* Enable GitHub secret scanning for the repository.
 
 ---
 
-## Future Enhancements
+# 💡 Key AI Concepts Demonstrated
 
-* GitHub Pull Request Reviews
-* SonarQube Integration
-* PDF Report Export
-* Authentication and User Management
-* CI/CD Integration
-* Docker Deployment
+This project demonstrates practical implementation of:
 
----
-=======
-# Future Enhancements
-
-- Authentication
-- User Accounts
-- AI-generated code fixes
-- GitHub Pull Request Integration
-- PDF Report Export
-- RAG-based coding standards retrieval
-- Syntax highlighting improvements
-- CI/CD deployment
-- Rate limiting
-- Logging & monitoring
+* **Generative AI**
+* **Large Language Models**
+* **Prompt Engineering**
+* **Embeddings**
+* **Vector Search**
+* **RAG**
+* **LangChain**
+* **LangGraph**
+* **Agentic Workflow**
+* **Semantic Search**
+* **Structured LLM Output**
+* **Pydantic Validation**
+* **FastAPI**
+* **PostgreSQL**
+* **pgvector**
+* **Docker**
 
 ---
 
-# Screenshots
+# 👩‍💻 Author
 
-Add screenshots of:
+**Bindhu Selvi**
 
-- Review Page
-- Review History
-- Swagger API
-- Docker Containers
+AI Engineer | Python | Generative AI | RAG | Agentic AI
 
 ---
 
->>>>>>> a9d6b23 (Fixed the review page error)
+## ⭐ Project Highlights
+
+> **An end-to-end AI Code Review Agent that combines LLM reasoning, RAG-based coding standards retrieval, pgvector semantic search, LangGraph workflow orchestration, FastAPI, PostgreSQL, and Streamlit to automate software code reviews.**
+
+If you find this project useful, consider giving the repository a ⭐.

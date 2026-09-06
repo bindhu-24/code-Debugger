@@ -8,6 +8,7 @@ openai
 langchain
 langchain-openai
 langgraph
+langchain-core
 pgvector
 alembic
 streamlit 
